@@ -12,6 +12,8 @@
 
 // low level stuff
 class SoftwareSerial {
+private:
+    std::string buffer;
 public:
     // dummy constructor
     SoftwareSerial(int, int) {}
@@ -41,6 +43,15 @@ public:
     }
 
     void write(char c) {
+        buffer += c;
+        if (c == '\n')
+        {
+            write(buffer);
+            buffer = std::string();
+        }
+    }
+
+    void writeChar(char c) {
         std::string filename("stdout");
         const size_t size = sizeof(c);
         std::ofstream pipe(filename, std::ios::out | std::ios::binary);
@@ -51,14 +62,14 @@ public:
 
     void write(std::string str) {
         for(char& c : str) {
-            write(c);
+            writeChar(c);
         }
-        write('\n');
+        //writeChar('\n');
     }
 
     void writeln(char c) {
-        write(c);
-        write('\n');
+        writeChar(c);
+        writeChar('\n');
     }
 
     // dummy function
@@ -78,6 +89,7 @@ public:
 
     std::string readString() {
         getline(std::cin, buffer);
+        buffer += '\n';
         return buffer;
     }
 
@@ -136,7 +148,7 @@ class Arduino2 {
 public:
     // Arduino-like program
     SoftwareSerial mySerial = SoftwareSerial(2, 3);
-    int offst = 0;
+    int offst = 1;
 
     void begin() {
         Serial.begin(115200);
@@ -145,16 +157,19 @@ public:
 
     void loop() {
         // receive the characters from Serial and write to mySerial
-        // does not work correctly
-        /*if (Serial.available()) {
+        if (Serial.available()) {
             char a = Serial.read();
-            mySerial.writeln(a);
-        }*/
+            if (a != '\n')
+                a += offst;
+            mySerial.write(a);
+        }
 
-        std::string text = Serial.readString();
+        // or instead read whole string
+        /*std::string text = Serial.readString();
         for (char& c : text)
             c += offst;
         mySerial.write(text);
+        */
     }
 };
 
