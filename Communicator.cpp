@@ -121,10 +121,6 @@ public:
                 a -= offst;
             Serial.write(a);
         }
-
-        // simultaneous receiving and sending does not work in this example
-        /*if (Serial.available())
-            mySerial.write(Serial.read());*/
     }
 };
 
@@ -153,10 +149,6 @@ public:
         for (char& c : text)
             c += offst;
         mySerial.write(text);
-
-        // simultaneous receiving and sending does not work in this example
-        /*if (mySerial.available())
-            Serial.write(mySerial.read());*/
     }
 };
 
