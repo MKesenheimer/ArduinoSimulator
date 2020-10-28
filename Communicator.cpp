@@ -42,7 +42,7 @@ public:
     void write(char c) {
         std::string filename("stdout");
         const size_t size = sizeof(c);
-        std::ofstream pipe(filename, std::ios::in | std::ios::binary);
+        std::ofstream pipe(filename, std::ios::out | std::ios::binary);
         pipe.write(&c, size);
         usleep(1000);
     }
