@@ -56,6 +56,11 @@ public:
         write('\n');
     }
 
+    void writeln(char c) {
+        write(c);
+        write('\n');
+    }
+
     // dummy function
     bool available() {
         return true;
@@ -143,8 +148,7 @@ public:
         // does not work correctly
         /*if (Serial.available()) {
             char a = Serial.read();
-            mySerial.write(a);
-            mySerial.write('\n');
+            mySerial.writeln(a);
         }*/
 
         std::string text = Serial.readString();
