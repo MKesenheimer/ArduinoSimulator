@@ -26,6 +26,7 @@ public:
         const size_t size = sizeof(c);
         std::ifstream pipe(filename, std::ios::in | std::ios::binary);
         pipe.read(&c, size);
+        pipe.close();
         return c;
     }
 
@@ -45,6 +46,7 @@ public:
         std::ofstream pipe(filename, std::ios::out | std::ios::binary);
         pipe.write(&c, size);
         usleep(1000);
+        pipe.close();
     }
 
     void write(std::string str) {
