@@ -8,6 +8,7 @@
 #include <fstream>
 #include <unistd.h>
 #include <vector>
+#include <thread>
 #include "CommandLineParser.h"
 
 // low level stuff
@@ -44,8 +45,7 @@ public:
 
     void write(char c) {
         buffer += c;
-        if (c == '\n')
-        {
+        if (c == '\n') {
             write(buffer);
             buffer = std::string();
         }
@@ -130,14 +130,20 @@ public:
     }
 
     void loop() {
-        // receive the characters from mySerial and write to Serial
-        if (mySerial.available())
-        {
-            //Serial.write(mySerial.readString());
+        // receive the characters from mySerial (named pipe) and write to Serial (console)
+        if (mySerial.available()) {
+            std::cout << "Arduino 1: mySerial.available." << std::endl;
             char a = mySerial.read();
             if (a != '\n')
                 a -= offst;
             Serial.write(a);
+        }
+
+        // receive the characters from Serial (console) and write to mySerial (named pipe)
+        if (Serial.available()) {
+            std::cout << "Arduino 1: Serial.available." << std::endl;
+            char a = Serial.read();
+            mySerial.write(a);
         }
     }
 };
@@ -155,20 +161,21 @@ public:
     }
 
     void loop() {
-        // receive the characters from Serial and write to mySerial
+        // receive the characters from Serial (console) and write to mySerial (named pipe)
         if (Serial.available()) {
+            std::cout << "Arduino 2: Serial.available." << std::endl;
             char a = Serial.read();
             if (a != '\n')
                 a += offst;
             mySerial.write(a);
         }
 
-        // or instead read whole strings (terminated by \n)
-        /*std::string text = Serial.readString();
-        for (char& c : text)
-            c += offst;
-        mySerial.write(text);
-        */
+        // receive the characters from mySerial (named pipe) and write to Serial (console)
+        if (mySerial.available()) {
+            std::cout << "Arduino 2: mySerial.available." << std::endl;
+            char a = mySerial.read();
+            Serial.write(a);
+        }
     }
 };
 
