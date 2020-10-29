@@ -2,7 +2,7 @@
 // mkfifo stdout
 // g++ Communicator.cpp -std=c++17 -o comm
 // ./comm -r
-// ./comm -s "Hello World!"
+// ./comm -s
 
 #include <iostream>
 #include <fstream>
@@ -64,7 +64,6 @@ public:
         for(char& c : str) {
             writeChar(c);
         }
-        //writeChar('\n');
     }
 
     void writeln(char c) {
@@ -123,7 +122,7 @@ class Arduino1 {
 public:
     // Arduino-like program
     SoftwareSerial mySerial  = SoftwareSerial(2, 3);
-    int offst = 0;
+    int offst = 1;
 
     void begin() {
         Serial.begin(115200);
@@ -164,7 +163,7 @@ public:
             mySerial.write(a);
         }
 
-        // or instead read whole string
+        // or instead read whole strings (terminated by \n)
         /*std::string text = Serial.readString();
         for (char& c : text)
             c += offst;
