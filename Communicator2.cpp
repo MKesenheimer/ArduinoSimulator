@@ -11,15 +11,23 @@
 #include <thread>
 #include "CommandLineParser.h"
 
+class Arduino {
+public:
+    //virtual ~Arduino() = 0;
+    virtual void begin() = 0;
+    virtual void loop() = 0;
+    virtual std::string writeTo() = 0;
+    virtual std::string readFrom() = 0;
+};
+
+// globals
 std::string s_cinBuffer;
 std::string s_pipeBuffer;
-const std::string namedPipe12("stdout12");
-const std::string namedPipe21("stdout21");
+Arduino* s_arduino;
 
-template<int nfile>
 class IOHandler {
 public:
-    static void cinThread() {
+    void cinThread() {
         while (1) {
             std::string buffer;
             getline(std::cin, buffer);
@@ -28,12 +36,10 @@ public:
         }
     }
 
-    static void pipeThread() {
+    void pipeThread() {
         while(1) {
             char c = 0;
-            std::string filename(namedPipe12);
-            if (nfile == 21)
-                filename = std::string(namedPipe21);
+            std::string filename(s_arduino->readFrom());
             const size_t size = sizeof(c);
             std::ifstream pipe(filename, std::ios::in | std::ios::binary);
             pipe.read(&c, size);
@@ -45,10 +51,9 @@ public:
 
 // low level stuff
 class SoftwareSerial {
-private:
-    int m_nfile;
 public:
-    SoftwareSerial(int x, int y) : m_nfile(x * 10 + y) {}
+    // dummy constructor
+    SoftwareSerial(int, int) {}
 
     // dummy function
     void begin(int) {}
@@ -67,9 +72,7 @@ public:
     }
 
     void write(char c) {
-        std::string filename(namedPipe12);
-        if (m_nfile == 21)
-            filename = std::string(namedPipe21);
+        std::string filename(s_arduino->writeTo());
         const size_t size = sizeof(c);
         std::ofstream pipe(filename, std::ios::out | std::ios::binary);
         pipe.write(&c, size);
@@ -116,11 +119,10 @@ public:
 } Serial;
 
 // configured as receiver
-class Arduino1 {
+class Alice : public Arduino {
 public:
     // Arduino-like program
-    // ATTENTION: change this to SoftwareSerial mySerial(2, 3); in the "real" setup
-    SoftwareSerial mySerial  = SoftwareSerial(2, 1);
+    SoftwareSerial mySerial  = SoftwareSerial(2, 3);
     
     void begin() {
         Serial.begin(115200);
@@ -140,14 +142,19 @@ public:
             mySerial.write(a);
         }
     }
+
+public:
+    Alice() {}
+    ~Alice() {}
+    std::string writeTo() {return "stdout12";}
+    std::string readFrom() {return "stdout21";}
 };
 
 // configured as sender
-class Arduino2 {
+class Bob : public Arduino {
 public:
     // Arduino-like program
-    // ATTENTION: change this to SoftwareSerial mySerial(2, 3); in the "real" setup
-    SoftwareSerial mySerial  = SoftwareSerial(1, 2);
+    SoftwareSerial mySerial  = SoftwareSerial(2, 3);
 
     void begin() {
         Serial.begin(115200);
@@ -167,34 +174,69 @@ public:
             Serial.write(a);
         }
     }
+public:
+    Bob() {}
+    ~Bob() {}
+    std::string writeTo() {return "stdout21";}
+    std::string readFrom() {return "stdout12";}
+};
+
+// configured as sender
+class Carter : public Arduino {
+public:
+    // Arduino-like program
+    SoftwareSerial mySerial  = SoftwareSerial(2, 3);
+
+    void begin() {
+        Serial.begin(115200);
+        mySerial.begin(74880);
+    }
+
+    void loop() {
+        // receive the characters from Serial (console) and write to mySerial (named pipe)
+        if (Serial.available()) {
+            char a = Serial.read();
+            mySerial.write(a);
+        }
+
+        // receive the characters from mySerial (named pipe) and write to Serial (console)
+        if (mySerial.available()) {
+            char a = mySerial.read();
+            Serial.write(a);
+        }
+    }
+public:
+    Carter() {}
+    ~Carter() {}
+    std::string writeTo() {return "stdout21";}
+    std::string readFrom() {return "stdout12";}
 };
 
 // program logic
 int main(int argc, char* args[])
 {
-    if (auxiliary::CommandLineParser::cmdOptionExists(args, args + argc, "-r")) {
-        IOHandler<12> iohandler;
-        std::thread thread1(iohandler.cinThread);
-        std::thread thread2(iohandler.pipeThread);
-        Arduino1 arduino1;
-        arduino1.begin();
-        while(1) {
-            arduino1.loop();
-        }
-        thread1.join();
-        thread2.join();
+    if (auxiliary::CommandLineParser::cmdOptionExists(args, args + argc, "-a")) {
+        s_arduino = new Alice;
     }
 
-    if (auxiliary::CommandLineParser::cmdOptionExists(args, args + argc, "-s")) {
-        IOHandler<21> iohandler;
-        std::thread thread1(iohandler.cinThread);
-        std::thread thread2(iohandler.pipeThread);
-        Arduino2 arduino2;
-        arduino2.begin();
-        while(1) {
-            arduino2.loop();
-        }
-        thread1.join();
-        thread2.join();
+    if (auxiliary::CommandLineParser::cmdOptionExists(args, args + argc, "-b")) {
+        s_arduino = new Bob;
     }
+
+    if (auxiliary::CommandLineParser::cmdOptionExists(args, args + argc, "-c")) {
+        s_arduino = new Carter;
+    }
+
+    IOHandler iohandler;
+    std::thread thread1(&IOHandler::cinThread, iohandler);
+    std::thread thread2(&IOHandler::pipeThread, iohandler);
+    s_arduino->begin();
+    while(1) {
+        s_arduino->loop();
+    }
+
+    // is never reached
+    thread1.join();
+    thread2.join();
+    //delete s_arduino;
 }
