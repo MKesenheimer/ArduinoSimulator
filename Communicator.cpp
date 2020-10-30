@@ -1,8 +1,21 @@
-// Program to simulate the serial communication between two Arduinos
-// mkfifo stdout
-// g++ Communicator.cpp -std=c++17 -o comm
-// ./comm -r
-// ./comm -s
+// Program to simulate the serial (encrypted) communication between multiple Arduinos
+// compile: g++ Communicator.cpp -std=c++17 -o comm
+// To emulate the (serial) communication between the arduinos,
+// these programs use named pipes. You have to generate the named pipes
+// before starting the programs.
+// mkfifo stdout12
+// mkfifo stdout21
+// mkfifo stdout23
+// mkfifo stdout32
+// mkfifo stdout13
+// mkfifo stdout31
+// Then start the three instances of the arduinos in three seperate terminal
+// windows (Alice, Bob, Carter).
+// Alice and Bob speek two each other, whereas Carter is in a man in the middle
+// position and tries to eavesdrop on the communication.
+// ./comm -a
+// ./comm -b
+// ./comm -c
 
 #include <iostream>
 #include <fstream>
@@ -11,10 +24,50 @@
 #include <thread>
 #include "CommandLineParser.h"
 
-// low level stuff
+class Arduino {
+public:
+    //virtual ~Arduino() = 0;
+    virtual void begin() = 0;
+    virtual void loop() = 0;
+    virtual std::string writeTo() = 0;
+    virtual std::string readFrom() = 0;
+};
+
+// globals
+// surely not the best way to do it, but it works
+std::string s_cinBuffer;
+std::string s_pipeBuffer;
+Arduino* s_arduino;
+
+// class which handles writing from the named pipes
+// in two seperate threads.
+class IOHandler {
+public:
+    void cinThread() {
+        while (1) {
+            std::string buffer;
+            getline(std::cin, buffer);
+            buffer += '\n';
+            s_cinBuffer = buffer;
+        }
+    }
+
+    void pipeThread() {
+        while(1) {
+            char c = 0;
+            std::string filename(s_arduino->readFrom());
+            const size_t size = sizeof(c);
+            std::ifstream pipe(filename, std::ios::in | std::ios::binary);
+            pipe.read(&c, size);
+            pipe.close();
+            s_pipeBuffer += c;
+        }
+    }
+};
+
+// class to emulate the serial communication between
+// the participants
 class SoftwareSerial {
-private:
-    std::string buffer;
 public:
     // dummy constructor
     SoftwareSerial(int, int) {}
@@ -22,37 +75,21 @@ public:
     // dummy function
     void begin(int) {}
 
+    bool available() {
+        return (s_pipeBuffer.size() > 0);
+    }
+
     char read() {
-        // variables for the file sink
         char c = 0;
-        std::string filename("stdout");
-        const size_t size = sizeof(c);
-        std::ifstream pipe(filename, std::ios::in | std::ios::binary);
-        pipe.read(&c, size);
-        pipe.close();
+        if (s_pipeBuffer.size() > 0) {
+            c = s_pipeBuffer[0];
+            s_pipeBuffer.erase(s_pipeBuffer.begin());
+        }
         return c;
     }
 
-    std::string readString() {
-        std::string str = std::string();
-        char c = 0;
-        while (c != '\n') {
-            c = read();
-            str += c;
-        }
-        return str;
-    }
-
     void write(char c) {
-        buffer += c;
-        if (c == '\n') {
-            write(buffer);
-            buffer = std::string();
-        }
-    }
-
-    void writeChar(char c) {
-        std::string filename("stdout");
+        std::string filename(s_arduino->writeTo());
         const size_t size = sizeof(c);
         std::ofstream pipe(filename, std::ios::out | std::ios::binary);
         pipe.write(&c, size);
@@ -62,63 +99,44 @@ public:
 
     void write(std::string str) {
         for(char& c : str) {
-            writeChar(c);
+            write(c);
         }
-    }
-
-    void writeln(char c) {
-        writeChar(c);
-        writeChar('\n');
-    }
-
-    // dummy function
-    bool available() {
-        return true;
     }
 };
 
-// "Serial Communication" with command line
+// "serial" communication with the command line
 // read and print characters from/to command line
 class Serial_ {
-private:
-    std::string buffer;
 public:
     // dummy function
     void begin(int) {}
-
-    std::string readString() {
-        getline(std::cin, buffer);
-        buffer += '\n';
-        return buffer;
-    }
-
-    char read() {
-        char c = 0;
-        if (buffer.size() > 0) {
-            c = buffer[0];
-            buffer.erase(buffer.begin());
-        }
-        return c;
-    }
-
-    // TODO: use template
-    void write(std::string str) {
-        std::cout << str;
-    }
 
     void write(char c) {
         std::cout << c;
     }
 
     bool available() {
-        if (buffer.size() == 0)
-            readString();
-        return (buffer.size() > 0);
+        return (s_cinBuffer.size() > 0);
+    }
+
+    char read() {
+        char c = 0;
+        if (s_cinBuffer.size() > 0) {
+            c = s_cinBuffer[0];
+            s_cinBuffer.erase(s_cinBuffer.begin());
+        }
+        return c;
+    }
+
+    std::string readLine() {
+        std::string buffer = s_cinBuffer;
+        s_cinBuffer = std::string();
+        return buffer;
     }
 } Serial;
 
-// configured as receiver
-class Arduino1 {
+// first participant (Alice)
+class Alice : public Arduino {
 public:
     // Arduino-like program
     SoftwareSerial mySerial  = SoftwareSerial(2, 3);
@@ -132,27 +150,35 @@ public:
     void loop() {
         // receive the characters from mySerial (named pipe) and write to Serial (console)
         if (mySerial.available()) {
-            std::cout << "Arduino 1: mySerial.available." << std::endl;
             char a = mySerial.read();
             if (a != '\n')
-                a -= offst;
+               a += offst;
             Serial.write(a);
         }
 
         // receive the characters from Serial (console) and write to mySerial (named pipe)
         if (Serial.available()) {
-            std::cout << "Arduino 1: Serial.available." << std::endl;
             char a = Serial.read();
+            if (a != '\n')
+               a -= offst;
             mySerial.write(a);
         }
+
+        usleep(10);
     }
+
+public:
+    Alice() {}
+    ~Alice() {}
+    std::string writeTo() {return "stdout12";}
+    std::string readFrom() {return "stdout31";}
 };
 
-// configured as sender
-class Arduino2 {
+// second participant (Bob)
+class Bob : public Arduino {
 public:
     // Arduino-like program
-    SoftwareSerial mySerial = SoftwareSerial(2, 3);
+    SoftwareSerial mySerial  = SoftwareSerial(2, 3);
     int offst = 1;
 
     void begin() {
@@ -163,38 +189,82 @@ public:
     void loop() {
         // receive the characters from Serial (console) and write to mySerial (named pipe)
         if (Serial.available()) {
-            std::cout << "Arduino 2: Serial.available." << std::endl;
             char a = Serial.read();
             if (a != '\n')
-                a += offst;
+               a -= offst;
             mySerial.write(a);
         }
 
         // receive the characters from mySerial (named pipe) and write to Serial (console)
         if (mySerial.available()) {
-            std::cout << "Arduino 2: mySerial.available." << std::endl;
             char a = mySerial.read();
+            if (a != '\n')
+               a += offst;
             Serial.write(a);
         }
+
+        usleep(10);
     }
+public:
+    Bob() {}
+    ~Bob() {}
+    std::string writeTo() {return "stdout23";}
+    std::string readFrom() {return "stdout12";}
+};
+
+// third participant (Carter) in a MITM position
+class Carter : public Arduino {
+public:
+    // Arduino-like program
+    SoftwareSerial mySerial  = SoftwareSerial(2, 3);
+
+    void begin() {
+        Serial.begin(115200);
+        mySerial.begin(74880);
+    }
+
+    void loop() {
+        // receive the characters from Serial (console) and write to mySerial (named pipe)
+        if (mySerial.available()) {
+            char a = mySerial.read();
+            Serial.write(a);
+            mySerial.write(a);
+        }
+
+        usleep(10);
+    }
+public:
+    Carter() {}
+    ~Carter() {}
+    std::string writeTo() {return "stdout31";}
+    std::string readFrom() {return "stdout23";}
 };
 
 // program logic
 int main(int argc, char* args[])
 {
-    if (auxiliary::CommandLineParser::cmdOptionExists(args, args + argc, "-r")) {
-        Arduino1 receiver;
-        receiver.begin();
-        while(1) {
-            receiver.loop();
-        }
+    if (auxiliary::CommandLineParser::cmdOptionExists(args, args + argc, "-a")) {
+        s_arduino = new Alice;
     }
 
-    if (auxiliary::CommandLineParser::cmdOptionExists(args, args + argc, "-s")) {
-        Arduino2 sender;
-        sender.begin();
-        while(1) {
-            sender.loop();
-        }
+    if (auxiliary::CommandLineParser::cmdOptionExists(args, args + argc, "-b")) {
+        s_arduino = new Bob;
     }
+
+    if (auxiliary::CommandLineParser::cmdOptionExists(args, args + argc, "-c")) {
+        s_arduino = new Carter;
+    }
+
+    IOHandler iohandler;
+    std::thread thread1(&IOHandler::cinThread, iohandler);
+    std::thread thread2(&IOHandler::pipeThread, iohandler);
+    s_arduino->begin();
+    while(1) {
+        s_arduino->loop();
+    }
+
+    // is never reached
+    thread1.join();
+    thread2.join();
+    //delete s_arduino;
 }
