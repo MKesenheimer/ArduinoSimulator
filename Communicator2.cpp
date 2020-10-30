@@ -147,7 +147,7 @@ public:
     Alice() {}
     ~Alice() {}
     std::string writeTo() {return "stdout12";}
-    std::string readFrom() {return "stdout21";}
+    std::string readFrom() {return "stdout31";}
 };
 
 // configured as sender
@@ -177,7 +177,7 @@ public:
 public:
     Bob() {}
     ~Bob() {}
-    std::string writeTo() {return "stdout21";}
+    std::string writeTo() {return "stdout23";}
     std::string readFrom() {return "stdout12";}
 };
 
@@ -194,22 +194,23 @@ public:
 
     void loop() {
         // receive the characters from Serial (console) and write to mySerial (named pipe)
-        if (Serial.available()) {
-            char a = Serial.read();
+        if (mySerial.available()) {
+            char a = mySerial.read();
+            Serial.write(a);
             mySerial.write(a);
         }
 
         // receive the characters from mySerial (named pipe) and write to Serial (console)
-        if (mySerial.available()) {
+        /*if (mySerial.available()) {
             char a = mySerial.read();
             Serial.write(a);
-        }
+        }*/
     }
 public:
     Carter() {}
     ~Carter() {}
-    std::string writeTo() {return "stdout21";}
-    std::string readFrom() {return "stdout12";}
+    std::string writeTo() {return "stdout31";}
+    std::string readFrom() {return "stdout23";}
 };
 
 // program logic
