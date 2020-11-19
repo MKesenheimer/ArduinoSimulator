@@ -90,6 +90,12 @@ public:
         return c;
     }
 
+    std::string readString() {
+        std::string buffer = s_pipeBuffer;
+        s_pipeBuffer = std::string();
+        return buffer;
+    }
+
     void write(char c) {
         std::string filename(s_arduino->writeTo());
         const size_t size = sizeof(c);
@@ -99,7 +105,7 @@ public:
         pipe.close();
     }
 
-    void write(std::string str) {
+    void print(std::string str) {
         for(char& c : str) {
             write(c);
         }
@@ -112,10 +118,6 @@ class Serial_ {
 public:
     // dummy function
     void begin(int) {}
-
-    void write(char c) {
-        std::cout << c;
-    }
 
     bool available() {
         return (s_cinBuffer.size() > 0);
@@ -130,26 +132,48 @@ public:
         return c;
     }
 
-    std::string readLine() {
+    std::string readString() {
         std::string buffer = s_cinBuffer;
         s_cinBuffer = std::string();
         return buffer;
+    }
+
+    void write(char c) {
+        std::cout << c;
+    }
+
+    void print(std::string str) {
+        std::cout << str;
     }
 } Serial;
 
 // first participant (Alice)
 class Alice : public Arduino {
 public:
+
+    // ########### CODE BLOCK BEGIN ###########
     // Arduino-like program
     SoftwareSerial mySerial  = SoftwareSerial(2, 3);
 
-    char encrypt(char clr, int key) {
-        char cphr = clr - key;
+    String encrypt(String clr, int key) {
+        String cphr;
+        for (int i = 0; i < clr.size(); i++) {
+            // einzelnen Buchstaben aus dem Klartext im Alphabet verschieben -> "Verschlüsselung"
+            char temp = clr[i] - key;
+            // verschlüsselten Buchstaben temp an Cipher-Text cphr anhängen
+            cphr = cphr + temp;
+        }
         return cphr;
     }
 
-    char decrypt(char cphr, int key) {
-        char clr = cphr + key;
+    String decrypt(String cphr, int key) {
+        String clr;
+        for (int i = 0; i < cphr.size(); i++) {
+            // einzelnen Buchstaben aus dem Cipher-Text im Alphabet verschieben -> "Entschlüsselung"
+            char temp = cphr[i] + key;
+            // entschlüsselten Buchstaben temp an Klartext clr anhängen
+            clr = clr + temp;
+        }
         return clr;
     }
 
@@ -163,20 +187,21 @@ public:
 
         // receive the characters from Serial (console) and write to mySerial (named pipe)
         if (Serial.available()) {
-            char clr = Serial.read();
-            char cphr = encrypt(clr, key);
-            mySerial.write(cphr);
+            String clr = Serial.readString();
+            String cphr = encrypt(clr, key);
+            mySerial.print(cphr);
         }
 
         // receive the characters from mySerial (named pipe) and write to Serial (console)
         if (mySerial.available()) {
-            char cphr = mySerial.read();
-            char clr = decrypt(cphr, key);
-            Serial.write(clr);
+            String cphr = mySerial.readString();
+            String clr = decrypt(cphr, key);
+            Serial.print(clr);
         }
 
         usleep(10);
     }
+    // ########### CODE BLOCK END #############
 
 public:
     Alice() {}
@@ -188,16 +213,30 @@ public:
 // second participant (Bob)
 class Bob : public Arduino {
 public:
+
+    // ########### CODE BLOCK BEGIN ###########
     // Arduino-like program
     SoftwareSerial mySerial  = SoftwareSerial(2, 3);
 
-    char encrypt(char clr, int key) {
-        char cphr = clr - key;
+    String encrypt(String clr, int key) {
+        String cphr;
+        for (int i = 0; i < clr.size(); i++) {
+            // einzelnen Buchstaben aus dem Klartext im Alphabet verschieben -> "Verschlüsselung"
+            char temp = clr[i] - key;
+            // verschlüsselten Buchstaben temp an Cipher-Text cphr anhängen
+            cphr = cphr + temp;
+        }
         return cphr;
     }
 
-    char decrypt(char cphr, int key) {
-        char clr = cphr + key;
+    String decrypt(String cphr, int key) {
+        String clr;
+        for (int i = 0; i < cphr.size(); i++) {
+            // einzelnen Buchstaben aus dem Cipher-Text im Alphabet verschieben -> "Entschlüsselung"
+            char temp = cphr[i] + key;
+            // entschlüsselten Buchstaben temp an Klartext clr anhängen
+            clr = clr + temp;
+        }
         return clr;
     }
 
@@ -211,20 +250,21 @@ public:
 
         // receive the characters from Serial (console) and write to mySerial (named pipe)
         if (Serial.available()) {
-            char clr = Serial.read();
-            char cphr = encrypt(clr, key);
-            mySerial.write(cphr);
+            String clr = Serial.readString();
+            String cphr = encrypt(clr, key);
+            mySerial.print(cphr);
         }
 
         // receive the characters from mySerial (named pipe) and write to Serial (console)
         if (mySerial.available()) {
-            char cphr = mySerial.read();
-            char clr = decrypt(cphr, key);
-            Serial.write(clr);
+            String cphr = mySerial.readString();
+            String clr = decrypt(cphr, key);
+            Serial.print(clr);
         }
 
         usleep(10);
     }
+    // ########### CODE BLOCK END #############
 
 public:
     Bob() {}
@@ -234,8 +274,7 @@ public:
 };
 
 // program logic
-int main(int argc, char* args[])
-{
+int main(int argc, char* args[]) {
     if (auxiliary::CommandLineParser::cmdOptionExists(args, args + argc, "-a")) {
         s_arduino = new Alice;
     }
