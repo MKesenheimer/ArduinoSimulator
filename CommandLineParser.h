@@ -5,6 +5,7 @@
  */
 #pragma once
 #include <string>
+#include <algorithm>
 
 namespace auxiliary {
     class CommandLineParser

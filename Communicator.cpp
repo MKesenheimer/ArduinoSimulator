@@ -1,5 +1,6 @@
 // Program to simulate the serial (encrypted) communication between multiple Arduinos
 // compile: g++ Communicator.cpp -std=c++17 -o comm
+// on linux: g++ Communicator.cpp -std=c++17 -pthread -o comm
 // To emulate the (serial) communication between the arduinos,
 // these programs use named pipes. You have to generate the named pipes
 // before starting the programs.
