@@ -13,7 +13,17 @@ g++ Caesar.cpp -std=c++17 -pthread -o comm
 to compile the code.
 
 ## Usage
-Open three terminal windows and start three seperate "Arduino" instances
+Since the simulated serial communication is based on named pipes, you have to create them first:
+```
+mkfifo stdout12
+mkfifo stdout21
+mkfifo stdout23
+mkfifo stdout32
+mkfifo stdout13
+mkfifo stdout31
+```
+
+Afterwards, open three terminal windows and start three seperate "Arduino" instances
 ```
 ./comm -a
 ./comm -b
