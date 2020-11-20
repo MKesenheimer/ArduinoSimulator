@@ -1,6 +1,5 @@
 // Program to simulate the serial (encrypted) communication between multiple Arduinos
-// compile: g++ Caesar.cpp -std=c++17 -o comm
-// on linux: g++ Caesar.cpp -std=c++17 -pthread -o comm
+// compile: g++ Caesar.cpp -std=c++17 -pthread -o comm
 // To emulate the (serial) communication between the arduinos,
 // these programs use named pipes. You have to generate the named pipes
 // before starting the programs.
@@ -39,7 +38,12 @@ public:
 std::string s_cinBuffer;
 std::string s_pipeBuffer;
 Arduino* s_arduino;
-typedef std::string String;
+//typedef std::string String;
+
+class String : public std::string {
+public:
+    using std::string::string;
+};
 
 // class which handles writing from the named pipes
 // in two seperate threads.
