@@ -1,5 +1,5 @@
 # ArduinoSimulator
-Simulates the serial communication between two Arduinos on the command line.
+Simulates the serial communication between two or three Arduinos on the command line.
 Multiple encryption methods for the communication can be tried out.
 
 ## Prerequisites
