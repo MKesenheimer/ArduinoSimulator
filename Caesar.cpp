@@ -38,12 +38,12 @@ public:
 std::string s_cinBuffer;
 std::string s_pipeBuffer;
 Arduino* s_arduino;
-//typedef std::string String;
+typedef std::string String;
 
-class String : public std::string {
+/*class String : public std::string {
 public:
     using std::string::string;
-};
+};*/
 
 // class which handles writing from the named pipes
 // in two seperate threads.
