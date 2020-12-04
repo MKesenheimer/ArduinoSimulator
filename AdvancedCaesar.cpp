@@ -1,5 +1,5 @@
 // Program to simulate the serial (encrypted) communication between multiple Arduinos
-// compile: g++ Communicator.cpp -std=c++17 -pthread -o comm
+// compile: g++ AdvancedCaesar.cpp -std=c++17 -pthread -o comm
 // To emulate the (serial) communication between the arduinos,
 // these programs use named pipes. You have to generate the named pipes
 // before starting the programs.
@@ -38,6 +38,12 @@ public:
 std::string s_cinBuffer;
 std::string s_pipeBuffer;
 Arduino* s_arduino;
+typedef std::string String;
+
+/*class String : public std::string {
+public:
+    using std::string::string;
+};*/
 
 // class which handles writing from the named pipes
 // in two seperate threads.
@@ -88,6 +94,12 @@ public:
         return c;
     }
 
+    std::string readString() {
+        std::string buffer = s_pipeBuffer;
+        s_pipeBuffer = std::string();
+        return buffer;
+    }
+
     void write(char c) {
         std::string filename(s_arduino->writeTo());
         const size_t size = sizeof(c);
@@ -97,7 +109,7 @@ public:
         pipe.close();
     }
 
-    void write(std::string str) {
+    void print(std::string str) {
         for(char& c : str) {
             write(c);
         }
@@ -110,10 +122,6 @@ class Serial_ {
 public:
     // dummy function
     void begin(int) {}
-
-    void write(char c) {
-        std::cout << c;
-    }
 
     bool available() {
         return (s_cinBuffer.size() > 0);
@@ -128,19 +136,54 @@ public:
         return c;
     }
 
-    std::string readLine() {
+    std::string readString() {
         std::string buffer = s_cinBuffer;
         s_cinBuffer = std::string();
         return buffer;
+    }
+
+    void write(char c) {
+        std::cout << c;
+    }
+
+    void print(std::string str) {
+        std::cout << str;
     }
 } Serial;
 
 // first participant (Alice)
 class Alice : public Arduino {
 public:
+
+    // ########### CODE BLOCK BEGIN ###########
     // Arduino-like program
     SoftwareSerial mySerial  = SoftwareSerial(2, 3);
-    int offst = 1;
+
+    String encrypt(String clr, String key) {
+        String cphr;
+        int keyIter = 0;
+        for (int clrIter = 0; clrIter < clr.size(); clrIter++) {
+            // einzelnen Buchstaben aus dem Klartext im Alphabet verschieben -> "Verschlüsselung"
+            char temp = (clr[clrIter] - key[keyIter]) % 256;
+            // verschlüsselten Buchstaben temp an Cipher-Text cphr anhängen
+            cphr = cphr + temp;
+            keyIter = (keyIter + 1) % key.size();
+        }
+        return cphr;
+    }
+
+    String decrypt(String cphr, String key) {
+        String clr;
+        int keyIter = 0;
+        for (int cphrIter = 0; cphrIter < cphr.size(); cphrIter++) {
+            // einzelnen Buchstaben aus dem Cipher-Text im Alphabet verschieben -> "Entschlüsselung"
+            char temp = (cphr[cphrIter] + key[keyIter]) % 256;
+            // entschlüsselten Buchstaben temp an Klartext clr anhängen
+            clr = clr + temp;
+            keyIter = (keyIter + 1) % key.size();
+        }
+        return clr;
+    }
 
     void begin() {
         Serial.begin(115200);
@@ -148,38 +191,68 @@ public:
     }
 
     void loop() {
-        // receive the characters from mySerial (named pipe) and write to Serial (console)
-        if (mySerial.available()) {
-            char a = mySerial.read();
-            if (a != '\n')
-               a += offst;
-            Serial.write(a);
-        }
+        String key = "Abc123";
 
         // receive the characters from Serial (console) and write to mySerial (named pipe)
         if (Serial.available()) {
-            char a = Serial.read();
-            if (a != '\n')
-               a -= offst;
-            mySerial.write(a);
+            String clr = Serial.readString();
+            String cphr = encrypt(clr, key);
+            mySerial.print(cphr);
+        }
+
+        // receive the characters from mySerial (named pipe) and write to Serial (console)
+        if (mySerial.available()) {
+            String cphr = mySerial.readString();
+            String clr = decrypt(cphr, key);
+            Serial.print(clr);
         }
 
         usleep(10);
     }
+    // ########### CODE BLOCK END #############
 
 public:
     Alice() {}
     ~Alice() {}
     std::string writeTo() {return "stdout12";}
-    std::string readFrom() {return "stdout31";}
+    std::string readFrom() {return "stdout21";}
 };
 
 // second participant (Bob)
 class Bob : public Arduino {
 public:
+
+    // ########### CODE BLOCK BEGIN ###########
     // Arduino-like program
     SoftwareSerial mySerial  = SoftwareSerial(2, 3);
-    int offst = 1;
+
+    String encrypt(String clr, String key) {
+        String cphr;
+        int keyIter = 0;
+        for (int clrIter = 0; clrIter < clr.size(); clrIter++) {
+            // einzelnen Buchstaben aus dem Klartext im Alphabet verschieben -> "Verschlüsselung"
+            char temp = (clr[clrIter] - key[keyIter]) % 256;
+            // verschlüsselten Buchstaben temp an Cipher-Text cphr anhängen
+            cphr = cphr + temp;
+            keyIter = (keyIter + 1) % key.size();
+        }
+        return cphr;
+    }
+
+    String decrypt(String cphr, String key) {
+        String clr;
+        int keyIter = 0;
+        std::cout << "cphr = " << cphr << std::endl;
+        for (int cphrIter = 0; cphrIter < cphr.size(); cphrIter++) {
+            // einzelnen Buchstaben aus dem Cipher-Text im Alphabet verschieben -> "Entschlüsselung"
+            char temp = (cphr[cphrIter] + key[keyIter]) % 256;
+            // entschlüsselten Buchstaben temp an Klartext clr anhängen
+            clr = clr + temp;
+            keyIter = (keyIter + 1) % key.size();
+            //std::cout << "keyIter = " << keyIter << std::endl;
+        }
+        return clr;
+    }
 
     void begin() {
         Serial.begin(115200);
@@ -187,72 +260,41 @@ public:
     }
 
     void loop() {
+        String key = "Abc123";
+
         // receive the characters from Serial (console) and write to mySerial (named pipe)
         if (Serial.available()) {
-            char a = Serial.read();
-            if (a != '\n')
-               a -= offst;
-            mySerial.write(a);
+            String clr = Serial.readString();
+            String cphr = encrypt(clr, key);
+            mySerial.print(cphr);
         }
 
         // receive the characters from mySerial (named pipe) and write to Serial (console)
         if (mySerial.available()) {
-            char a = mySerial.read();
-            if (a != '\n')
-               a += offst;
-            Serial.write(a);
+            String cphr = mySerial.readString();
+            String clr = decrypt(cphr, key);
+            Serial.print(clr);
         }
 
         usleep(10);
     }
+    // ########### CODE BLOCK END #############
+
 public:
     Bob() {}
     ~Bob() {}
-    std::string writeTo() {return "stdout23";}
+    std::string writeTo() {return "stdout21";}
     std::string readFrom() {return "stdout12";}
 };
 
-// third participant (Carter) in a MITM position
-class Carter : public Arduino {
-public:
-    // Arduino-like program
-    SoftwareSerial mySerial  = SoftwareSerial(2, 3);
-
-    void begin() {
-        Serial.begin(115200);
-        mySerial.begin(74880);
-    }
-
-    void loop() {
-        // receive the characters from Serial (console) and write to mySerial (named pipe)
-        if (mySerial.available()) {
-            char a = mySerial.read();
-            Serial.write(a);
-            mySerial.write(a);
-        }
-
-        usleep(10);
-    }
-public:
-    Carter() {}
-    ~Carter() {}
-    std::string writeTo() {return "stdout31";}
-    std::string readFrom() {return "stdout23";}
-};
-
 // program logic
-int main(int argc, char* args[])
-{
+int main(int argc, char* args[]) {
     if (auxiliary::CommandLineParser::cmdOptionExists(args, args + argc, "-a")) {
         s_arduino = new Alice;
     }
 
     if (auxiliary::CommandLineParser::cmdOptionExists(args, args + argc, "-b")) {
         s_arduino = new Bob;
-    }
-
-    if (auxiliary::CommandLineParser::cmdOptionExists(args, args + argc, "-c")) {
-        s_arduino = new Carter;
     }
 
     IOHandler iohandler;
