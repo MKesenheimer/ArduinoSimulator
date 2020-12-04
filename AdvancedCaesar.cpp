@@ -155,6 +155,59 @@ public:
 class Alice : public Arduino {
 public:
 
+    // s-box "encryption" look-up table (Nachschlage-Tabelle)
+    // Bei Caesar, zum Beispiel, Verschiebung um 1:
+    // a -> b
+    // b -> c
+    // c -> d
+    // ...
+    // bei s-box, zum Beispiel zufällig:
+    // a -> y
+    // b -> p
+    // c -> r
+    // d -> e
+    // ...
+    // brauche funktion, die als eingabe einen Buchstaben hernimmt
+    // und diesen mit einem Buchstaben aus dem Array sbox ersetzt:
+    char sboxEncrypt(char c) {
+        char ret;
+        // wir kommen mit einem Alphabet an:
+        // für Kleinbuchstaben:
+        // Zeichen:  a, b, c, d, e, ...
+        // Position: 0, 1, 2, 3, 4, ...
+        if (c >= 97 && c <= 122) {
+            int pos = (c - 97) % 26;
+            char sbox[26] = {'y', 'p', 'r', 'e', 'f', 'u', 's', 'c', 'i', 't',
+                            'h', 'n', 'm', 'a', 'o', 'z', 'x', 'd', 'g', 'j', 
+                            'k', 'l', 'v', 'w', 'q', 'b'};
+                ret = sbox[pos];
+        }
+        // für Großbuchstaben:
+        else if (c >= 65 && c <= 90) {
+            int pos = (c - 65) % 26;
+            char sbox[26] = {'B', 'Q', 'W', 'V', 'L', 'K', 'J', 'G', 'D', 'X',
+                             'Z', 'O', 'A', 'M', 'N', 'H', 'T', 'I', 'C', 'S',
+                             'U', 'F', 'E', 'R', 'P', 'Y'};
+            ret = sbox[pos];
+        }
+        // für alles andere (Sonderzeichen usw. werden nicht ersetzt)
+        // Weil wir faul sind.
+        // Könnte man noch verbessern
+        else {
+            ret = c;
+        }
+        
+        return ret;
+    }
+
+    // TODO:
+    char sboxDecrypt(char c) {
+        char ret;
+        // Rückwärtsrichtung von sboxEncrypt
+        //...
+        return ret;
+    }
+
     // ########### CODE BLOCK BEGIN ###########
     // Arduino-like program
     SoftwareSerial mySerial  = SoftwareSerial(2, 3);
