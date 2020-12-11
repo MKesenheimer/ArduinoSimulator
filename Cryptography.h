@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <sstream>
 #include "typedefs.h"
 
 class Cryptography {
@@ -57,12 +58,13 @@ public:
         return ret;
     }
 
-    static String encrypt(String clr, String key) {
+    static String encrypt(const String& clr, const String& key) {
         String cphr;
         int keyIter = 0;
         for (int clrIter = 0; clrIter < clr.size(); clrIter++) {
             // einzelnen Buchstaben aus dem Klartext im Alphabet verschieben -> "Verschlüsselung"
-            char temp = (clr[clrIter] - key[keyIter] + 65) % 256;
+            char temp = (clr[clrIter] ^ key[keyIter]) % 128;
+            if (temp < 0) temp += 128;
             // verschlüsselten Buchstaben temp an Cipher-Text cphr anhängen
             cphr = cphr + temp;
             keyIter = (keyIter + 1) % key.size();
@@ -70,18 +72,19 @@ public:
         return cphr;
     }
 
-    static String decrypt(String cphr, String key) {
+    static String decrypt(const String& cphr, const String& key) {
         String clr;
         int keyIter = 0;
-        std::cout << "cipher text to decrpyt = " << cphr << std::endl;
+        std::cout << "cipher text to decrpyt (hex) = " << convertToHex(cphr) << std::endl;
+        std::cout << "cipher text to decrpyt       = " << cphr << std::endl;
         //std::cout << "key = " << key << std::endl;
         for (int cphrIter = 0; cphrIter < cphr.size(); cphrIter++) {
             // einzelnen Buchstaben aus dem Cipher-Text im Alphabet verschieben -> "Entschlüsselung"
-            char temp = (cphr[cphrIter] + key[keyIter] - 65) % 256;
+            char temp = (cphr[cphrIter] ^ key[keyIter]) % 128;
+            if (temp < 0) temp += 128;
             // entschlüsselten Buchstaben temp an Klartext clr anhängen
             clr = clr + temp;
             keyIter = (keyIter + 1) % key.size();
-            //std::cout << "keyIter = " << keyIter << std::endl;
         }
         return clr;
     }
@@ -92,5 +95,22 @@ public:
 
     static char decrypt(char cphr, int key) {
         return cphr + key;
+    }
+
+    static String convertToHex(char c) {
+        std::stringstream temp;
+        if (c < 15)
+            temp << "\\x0" << std::hex << (int)c;
+        else
+            temp << "\\x" << std::hex << (int)c;
+        return temp.str();
+    }
+
+    static String convertToHex(const String& str) {
+        std::string temp;
+        for (const char c : str) {
+            temp += convertToHex(c);
+        }
+        return temp;
     }
 };

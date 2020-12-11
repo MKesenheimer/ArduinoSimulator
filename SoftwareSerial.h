@@ -56,8 +56,8 @@ public:
         pipe.close();
     }
 
-    void print(std::string str) {
-        for(char& c : str) {
+    void print(const std::string& str) {
+        for(const char& c : str) {
             print(c);
         }
         // terminate
