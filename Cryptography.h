@@ -58,6 +58,28 @@ public:
         return ret;
     }
 
+    static String substring(const String& str, int pos, int length) {
+        String temp;
+        for (int i = pos; i < pos + length; ++i) {
+            temp = temp + str[i];
+        }
+        return temp;
+    }
+
+    // Verschlüsselung nach dem Prinzip der "zufälligen Teilung" in
+    // Intervalle
+    static String chrisEncrypt(const String& clr, const String& key) {
+        String clrsub, cphr;
+        clrsub = substring(clr, 0, 2);
+        for (int i = 0; i < clrsub.size(); ++i) {
+            char temp = clrsub[i] + key[0];
+            cphr = cphr + temp;
+        }
+
+        return cphr;
+    }
+
+    // xor-encryption with arbitrary long password
     static String encrypt(const String& clr, const String& key) {
         String cphr;
         int keyIter = 0;
@@ -89,6 +111,7 @@ public:
         return clr;
     }
 
+    // one char caesar
     static char encrypt(char clr, int key) {
         return clr - key;
     }
@@ -97,6 +120,7 @@ public:
         return cphr + key;
     }
 
+    // helper functions
     static String convertToHex(char c) {
         std::stringstream temp;
         if (c < 15)

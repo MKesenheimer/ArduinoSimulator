@@ -28,22 +28,23 @@
 
 std::string Globals::s_cinBuffer;
 std::string Globals::s_pipeBuffer;
-Arduino* Globals::s_arduino;
+ArduinoC* Globals::s_arduino;
 
 // program logic
 int main(int argc, char* args[]) {
     if (auxiliary::CommandLineParser::cmdOptionExists(args, args + argc, "-a")) {
         Globals::s_arduino = new Alice;
-    }
-
-    if (auxiliary::CommandLineParser::cmdOptionExists(args, args + argc, "-b")) {
+    } else if (auxiliary::CommandLineParser::cmdOptionExists(args, args + argc, "-b")) {
         Globals::s_arduino = new Bob;
+    } else {
+        std::cout << "Error: use arguments -a or -b." << std::endl;
+        return -1;
     }
 
     IOHandler iohandler;
     std::thread thread1(&IOHandler::cinThread, iohandler);
     std::thread thread2(&IOHandler::pipeThread, iohandler);
-    Globals::s_arduino->begin();
+    Globals::s_arduino->setup();
     while(1) {
         Globals::s_arduino->loop();
     }
@@ -52,4 +53,6 @@ int main(int argc, char* args[]) {
     thread1.join();
     thread2.join();
     //delete s_arduino;
+
+    return 0;
 }

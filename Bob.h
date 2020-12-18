@@ -3,20 +3,20 @@
 #include <fstream>
 #include <unistd.h>
 #include "Globals.h"
-#include "Arduino.h"
 #include "SoftwareSerial.h"
 #include "Serial.h"
 #include "typedefs.h"
 #include "Cryptography.h"
+#include "ArduinoC.h"
 
 // second participant (Bob)
-class Bob : public Arduino {
+class Bob : public ArduinoC {
 public:
     // ########### CODE BLOCK BEGIN ###########
     // Arduino-like program
     SoftwareSerial mySerial  = SoftwareSerial(2, 3);
 
-    void begin() {
+    void setup() {
         Serial.begin(115200);
         mySerial.begin(74880);
     }

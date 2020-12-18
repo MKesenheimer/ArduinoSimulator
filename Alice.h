@@ -3,27 +3,27 @@
 #include <fstream>
 #include <unistd.h>
 #include "Globals.h"
-#include "Arduino.h"
 #include "SoftwareSerial.h"
 #include "Serial.h"
 #include "typedefs.h"
 #include "Cryptography.h"
+#include "ArduinoC.h"
 
 // first participant (Alice)
-class Alice : public Arduino {
+class Alice : public ArduinoC {
 public:
     // ########### CODE BLOCK BEGIN ###########
     // Arduino-like program
     SoftwareSerial mySerial  = SoftwareSerial(2, 3);
 
-    void begin() {
+    void setup() {
         Serial.begin(115200);
         mySerial.begin(74880);
     }
 
     void loop() {
         String key = "abc123";
-
+ 
         // receive the characters from Serial (console) and write to mySerial (named pipe)
         if (Serial.available()) {
             String clr = Serial.readString();
