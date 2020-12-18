@@ -25,6 +25,7 @@
 #include "IOHandler.h"
 #include "Alice.h"
 #include "Bob.h"
+#include "ArduinoKurs.h"
 
 std::string Globals::s_cinBuffer;
 std::string Globals::s_pipeBuffer;
@@ -36,6 +37,13 @@ int main(int argc, char* args[]) {
         Globals::s_arduino = new Alice;
     } else if (auxiliary::CommandLineParser::cmdOptionExists(args, args + argc, "-b")) {
         Globals::s_arduino = new Bob;
+    } else if (auxiliary::CommandLineParser::cmdOptionExists(args, args + argc, "-t")) {
+        Arduino* arduino = new ArduinoKurs;
+        arduino->setup();
+        while(1)
+            arduino->loop();
+        //delete arduino; // is never reached
+        return 0;
     } else {
         std::cout << "Error: use arguments -a or -b." << std::endl;
         return -1;
@@ -45,9 +53,8 @@ int main(int argc, char* args[]) {
     std::thread thread1(&IOHandler::cinThread, iohandler);
     std::thread thread2(&IOHandler::pipeThread, iohandler);
     Globals::s_arduino->setup();
-    while(1) {
+    while(1)
         Globals::s_arduino->loop();
-    }
 
     // is never reached
     thread1.join();

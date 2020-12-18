@@ -38,4 +38,16 @@ public:
     void print(std::string str) {
         std::cout << str;
     }
+
+    void print(int i) {
+        std::cout << i;
+    }
+
+    void println(std::string str) {
+        std::cout << str << std::endl;
+    }
+
+    void println(int i) {
+        std::cout << i << std::endl;
+    }
 } Serial;

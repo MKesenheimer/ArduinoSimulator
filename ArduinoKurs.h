@@ -2,27 +2,30 @@
 #include <iostream>
 #include <fstream>
 #include <unistd.h>
-#include "Globals.h"
 #include "Arduino.h"
 #include "SoftwareSerial.h"
 #include "Serial.h"
 #include "typedefs.h"
-#include "Cryptography.h"
 
 // first participant (Test)
-class Test : public Arduino {
+class ArduinoKurs : public Arduino {
 public:
     // ########### CODE BLOCK BEGIN ###########
     // Arduino-like program
     SoftwareSerial mySerial  = SoftwareSerial(2, 3);
 
-    void begin() {
+    void setup() {
         Serial.begin(115200);
         mySerial.begin(74880);
     }
 
     void loop() {
+        // ##############
+        // # Kapitel 0  #
+        // ##############
+        //
         // Hallo Welt Programm
+        //
         //Serial.print("Hello world!\n");
 
         // 1 Byte = 8 Bit = 2^8 Möglichkeiten = 256 Zahlen
@@ -35,8 +38,12 @@ public:
 
         // 2 Bytes = 16 Bit = 2^16 Möglichkeiten = 65536 Zahlen
 
-        // Kapitel 1
+        // ##############
+        // # Kapitel 1  #
+        // ##############
+        //
         // Datentypen
+        //
         // Integer = Ganzzahlen: -1, 0, 1, 2, 3...
         // wird im Speicher als 00000000 00000011 abgelegt (1 Integer = 2 Byte)
         int x0 = 3; // Integer x wird mit 3 initialisiert
@@ -74,43 +81,45 @@ public:
         String str = "Hello World";
 
 
-       /*
-        * Kapitel 2
-        * 
-        * */
+        // ##############
+        // # Kapitel 2  #
+        // ##############
+        //
         // Rechnen mit Datentypen
+        //
         // Addition: Berechne 2 + 5
         int i = 2;
         int ii = 5;
         int iii = i + ii; // genauso Subtraktion: i - ii -> -3
-        //Serial.print(iii);
-        //Serial.print('\n'); // neue Zeile
+        //Serial.println(iii);
 
         // Multiplikation:
         int m = i * ii;
-        //Serial.print(m);
-        //Serial.print('\n');
+        //Serial.println(m);
 
         // Division (Aufpassen!)
         int d0 = i / ii; // 2 / 5 = 0.4 -> d0 = 0
         float d1 = i / ii; // 2 / 5 = 0.4 -> d1 = 0.4
-        //Serial.print(d1);
-        //Serial.print('\n');
+        //Serial.println(d1);
 
         // Rechnen mit Zeichen und Strings
         // + Operator: hängt Zeichen an einen String an:
         String str1 = "Hello ";
         String str2 = "World";
         String str3  = str1 + str2; // str2 wird an str1 angehängt: "Hello World!"
-        //Serial.print(str3);
+        //Serial.println(str3);
 
         // Zeichen an einen String anhängen
         char ausrufeZeichen = '!';
         String str4 = str3 + ausrufeZeichen;
-        //Serial.print(str4);
+        //Serial.println(str4);
 
-        // Kapitel 3
+        // ##############
+        // # Kapitel 3  #
+        // ##############
+        //
         // Abkürzungen
+        //
         // Variable erhöhen
         int j0 = 0; // 0
         j0 = j0 + 1; // 1
@@ -119,7 +128,7 @@ public:
         j0++; // gleichbedeutend zu 'j0 = j0 + 1;'
         ++j0; // gleichbedeutend zu 'j0 = j0 + 1;'
         j0 += 1; // gleichbedeutend zu 'j0 = j0 + 1;'
-        Serial.print(j0); // 4
+        Serial.println(j0); // 4
 
         // Variable reduzieren
         int j1 = 10;
@@ -127,7 +136,7 @@ public:
         j1--; // gleichbedeutend zu 'j1 = j1 - 1'
         --j1; // ...
         j1 -= 1;
-        Serial.print(j0); // 6
+        Serial.println(j1); // 6
 
         // Variable multiplizieren oder dividieren
         int j2 = 20;
@@ -139,12 +148,21 @@ public:
         // Erhöhen oder Reduzieren geht nicht nur mit 1:
         j2 += 5; // 50
         j2 -= 10; // 40
+        Serial.println(j2); // 40
 
-        // Kapitel 4
+        // ##############
+        // # Kapitel 4  #
+        // ##############
+        //
         // Funktionen
+        //
 
-        // Kapitel 5
+        // ##############
+        // # Kapitel 5  #
+        // ##############
+        //
         // Schleifen und Bedingungen
+        //
 
         // nur für den Simulator notwendig: (warte 10 Mikrosekunden)
         usleep(10);
@@ -152,8 +170,6 @@ public:
     // ########### CODE BLOCK END #############
 
 public:
-    Test() {}
-    ~Test() {}
-    std::string writeTo() {return "stdout12";}
-    std::string readFrom() {return "stdout21";}
+    ArduinoKurs() {}
+    ~ArduinoKurs() {}
 };
