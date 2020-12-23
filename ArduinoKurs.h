@@ -14,15 +14,52 @@ public:
     // Arduino-like program
     SoftwareSerial mySerial  = SoftwareSerial(2, 3);
 
+
+    // Funktionsdefinitionen hier (immer außerhalb von loop() und setup())
+    // Prototyp:
+    //  _______________________________________ Datentyp des Rückgabewerts der Funktion (Output)
+    // |    ___________________________________ Funktionsname
+    // |   |     ______________________________ Datentyp des ersten Arguments (Input)
+    // |   |    |      ________________________ erstes Argument
+    // |   |    |     |         _______________ Datentyp des zweiten Arguments (Input)
+    // |   |    |     |        |      _________ zweites Argument
+    // |   |    |     |        |     |        _ Funktionskörper (bzw. Deklaration) kommt in die geschweiften Klammern
+    // |   |    |     |        |     |       |
+      int name(int argument1, int argument2) {
+        //... hier wird die Funktion beschrieben
+        return 0; // hier wird der Rückgabewert angegeben und zum "Caller" zurückgekehrt
+    }
+
+    // Kapitel 0x04: Addition
+    int addition(int zahl1, int zahl2) {
+        int ergebnis = zahl1 + zahl2;
+        return ergebnis;
+    }
+
+    // Kapitel 0x04: Mittelwert
+    int mittelwert(int z1, int z2, int z3, int z4, int z5, int z6, int z7, int z8, int z9, int z10) {
+        int ergebnis = z1 + z2 + z3 + z4 + z5 + z6 + z7 + z8 + z9 + z10;
+        ergebnis /= 10; // siehe Kapitel 0x03
+        return ergebnis;
+    }
+
+    // Kapitel 0x04: Funktionen ohne Rückgabewert -> Datentyp "void"
+    void ausgabe(int zahl) {
+        Serial.print("Die Zahl ist: ");
+        Serial.println(zahl);
+        // hier wird kein "return" gebraucht, da nichts zurückgegeben wird
+    }
+
+    // Allgemeine Setup-Funktion
     void setup() {
         Serial.begin(115200);
         mySerial.begin(74880);
     }
 
     void loop() {
-        // ##############
-        // # Kapitel 0  #
-        // ##############
+        // ################
+        // # Kapitel 0x00 #
+        // ################
         //
         // Hallo Welt Programm
         //
@@ -38,9 +75,9 @@ public:
 
         // 2 Bytes = 16 Bit = 2^16 Möglichkeiten = 65536 Zahlen
 
-        // ##############
-        // # Kapitel 1  #
-        // ##############
+        // ################
+        // # Kapitel 0x01 #
+        // ################
         //
         // Datentypen
         //
@@ -81,9 +118,9 @@ public:
         String str = "Hello World";
 
 
-        // ##############
-        // # Kapitel 2  #
-        // ##############
+        // ################
+        // # Kapitel 0x02 #
+        // ################
         //
         // Rechnen mit Datentypen
         //
@@ -114,9 +151,9 @@ public:
         String str4 = str3 + ausrufeZeichen;
         //Serial.println(str4);
 
-        // ##############
-        // # Kapitel 3  #
-        // ##############
+        // ################
+        // # Kapitel 0x03 #
+        // ################
         //
         // Abkürzungen
         //
@@ -128,7 +165,7 @@ public:
         j0++; // gleichbedeutend zu 'j0 = j0 + 1;'
         ++j0; // gleichbedeutend zu 'j0 = j0 + 1;'
         j0 += 1; // gleichbedeutend zu 'j0 = j0 + 1;'
-        Serial.println(j0); // 4
+        //Serial.println(j0); // 4
 
         // Variable reduzieren
         int j1 = 10;
@@ -136,7 +173,7 @@ public:
         j1--; // gleichbedeutend zu 'j1 = j1 - 1'
         --j1; // ...
         j1 -= 1;
-        Serial.println(j1); // 6
+        //Serial.println(j1); // 6
 
         // Variable multiplizieren oder dividieren
         int j2 = 20;
@@ -148,21 +185,89 @@ public:
         // Erhöhen oder Reduzieren geht nicht nur mit 1:
         j2 += 5; // 50
         j2 -= 10; // 40
-        Serial.println(j2); // 40
+        //Serial.println(j2); // 40
 
-        // ##############
-        // # Kapitel 4  #
-        // ##############
+        // ################
+        // # Kapitel 0x04 #
+        // ################
         //
         // Funktionen
         //
+        int x4 = 5;
+        int y4 = 6;
+        int z4 = x4 + y4; // Plus-Operation kann in eine Funktion ausgelagert werden
 
-        // ##############
-        // # Kapitel 5  #
-        // ##############
+        int x5 = 10;
+        int y5 = 4;
+        int z5 = x5 + y5; // Plus-Operation kann in eine Funktion ausgelagert werden
+
+        // Funktionen müssen am Anfang vom Programm definiert werden, siehe oben
+        // Addition mit Funktion "addition"
+        int z6 = addition(3, 4); // -> z2 = 7
+
+        // Beispiel: Mittelwert aus den Zahlen 1 - 10, siehe oben
+        int mw1 = mittelwert(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        //ausgabe(mw1);
+
+        // ################
+        // # Kapitel 0x05 #
+        // ################
         //
-        // Schleifen und Bedingungen
+        // Schleifen
         //
+        // Schleifen automatisieren gewisse Dinge
+        // - hochzählen
+        // - bestimmte Funktionen mehrfach aufrufen
+        // - etwas so lange Ausführen, bis eine Abbruchbedingung erfüllt ist
+        //
+        // for-Schleife
+        //   ___________________________________ Um welchen Schleifentyp handelt es sich? (for, while, do, ...)
+        //  |        ___________________________ Laufvariable, bzw. Index, der hochgezählt wird
+        //  |       |    _______________________ Start der Laufvariable i
+        //  |       |   |     __________________ Abbruchbedingung, die Schleife wird ausgeführt so lange i < max ist
+        //  |       |   |    |         _________ Um wie viel wird die Laufvariable i in jedem Iterationsschritt erhöht, hier um 1
+        //  |       |   |    |        |
+        // for (int i = 0; i < max; ++i) {  ____ Funktionskörper, bzw. diese Anweisungen werden in jedem Schritt ausgeführt
+        //     
+        // }
+
+        // Beispiel, Variable i von 0 bis 9 hochzählen lassen
+        for (int i = 0; i < 10; ++i) {
+            //ausgabe(i);
+        }
+
+        // Beispiel 2, Variable j von -10 bis 18 hochzählen, um 3 erhöhen in jedem Iterationsschritt
+        for (int j = -10; j < 18; j+=3) {
+            //ausgabe(j);
+        }
+
+        // Beispiel3, Mittelwertsberechnung der Zahlen 1 - 10:
+        int sum = 0;
+        int max = 1000;
+        for (int i = 1; i < max + 1; ++i) {
+            sum += i; // gleichbedeutend mit sum = sum + i;
+        }
+        sum /= max;
+        ausgabe(sum);
+
+        // Aufgabe: 
+        // Schreibe Funktion, die zwei Zahlen z1 und z2 nimmt und damit den
+        // Mittelwert der Zahlenfolge z1 bis z2 bestimmt
+        // Beispiel: z1 = 1 und z2 = 3: Mittelwert aus den Zahlen 1, 2, 3 -> 2
+        // Beispiel: z1 = 4 und z2 = 7: Mittelwert aus den zahlen 4, 5, 6, 7 ->  ...
+        
+
+        // ################
+        // # Kapitel 0x06 #
+        // ################
+        //
+        // Arrays
+
+        // ################
+        // # Kapitel 0x07 #
+        // ################
+        //
+        // Bedingungen
 
         // nur für den Simulator notwendig: (warte 10 Mikrosekunden)
         usleep(10);
