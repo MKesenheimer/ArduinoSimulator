@@ -68,15 +68,50 @@ public:
 
     // Verschlüsselung nach dem Prinzip der "zufälligen Teilung" in
     // Intervalle
-    static String chrisEncrypt(const String& clr, const String& key) {
-        String clrsub, cphr;
+    static String chrisEncrypt(String clr, int *key, int keyLength) {
+        // irgendwo vor dem Aufruf der Funktion chrisEncrypt muss das Array "key" definiert werden, z.B.
+        // int key[10] = {1, 5, 4, 1, 3, 6, 1, 9, 1, 4};
+
+        // Einfachstes Beispiel: Aufteilung des Strings
+        // clr = "Hello World, das ist ein Test!";
+        // in Intervalle mit jeweils 2 Buchstaben:
+        // clr[] = {"He", "ll", "o ", "Wo", "rl", ...};
+        // Vorschlag: Verschiebe das erste Intervall um 1, das zweite Intervall um 5 Buchstaben etc.
+        
+        /*
+        // for...
+        char clr1 = ...; // H
+        char clr2 = ...; // e
+        // Berechne die "verschlüsselten" Buchstaben:
+        char cphr1 = clr1 + key[0];
+        char cphr2 = clr2 + key[0];
+        ... 
+
+        // am Ende alle Buchstaben zu einem cphr-String zusammenfügen:
+        String cphr = "";
+        cphr += 'H'; // H
+        cphr += 'e'; // He
+        ...
+        */
+
+
+        // Hinweise zur Lösung:
+        // Wie viele Zeichen enthält ein String (z.B. clr): 
+        //   int strlength = clr.length();
+        // Aufteilung eines großen Strings in einzelne "Substrings"
+        //   String subs1 = clr.substr(0, 2); -> subs1 wird mit "He" befüllt
+        //   String subs2 = clr.substr(2, 4); -> subs2 wird mit "ll" befüllt
+        //
+
+
+        /*String clrsub, cphr;
         clrsub = substring(clr, 0, 2);
         for (int i = 0; i < clrsub.size(); ++i) {
             char temp = clrsub[i] + key[0];
             cphr = cphr + temp;
-        }
+        }*/
 
-        return cphr;
+        //return cphr;
     }
 
     // xor-encryption with arbitrary long password

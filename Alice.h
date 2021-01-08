@@ -28,6 +28,7 @@ public:
         if (Serial.available()) {
             String clr = Serial.readString();
             String cphr = Cryptography::encrypt(clr, key);
+            //String cphr = chrisEncrypt(clr, key);
             mySerial.print(cphr);
             /*char clr = Serial.read();
             char cphr = Cryptography::encrypt(clr, 1);
@@ -38,6 +39,7 @@ public:
         if (mySerial.available()) {
             String cphr = mySerial.readString();
             String clr = Cryptography::decrypt(cphr, key);
+            //String clr = chrisDecrypt(cphr, key);
             Serial.print(clr);
             /*char cphr = mySerial.read();
             char clr = Cryptography::decrypt(cphr, 1);

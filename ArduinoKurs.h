@@ -43,6 +43,20 @@ public:
         return ergebnis;
     }
 
+    // mit dieser Funktion kann ein Array übergeben werden
+    // Allerdings weiß die Funktion nicht, wie groß das Array ist.
+    // Deshalb muss die Länge des Arrays als extra Parameter übergeben werden
+    int mittelwert(int *z, int arrayLength) {
+        // z[0] -> Zugriff auf das 0te Element
+        // z[arrayLength - 1] -> Zugriff auf das letzte Element von z
+        // for (int i = 0; i <= arrayLength - 1; ++i)
+        int sum = 0;
+        for (int i = 0; i < arrayLength; ++i) 
+            sum += z[i];
+        sum /= arrayLength; // sum = sum / arrayLength
+        return sum;
+    }
+
     // Kapitel 0x04: Funktionen ohne Rückgabewert -> Datentyp "void"
     void ausgabe(int zahl) {
         Serial.print("Die Zahl ist: ");
@@ -248,9 +262,9 @@ public:
             sum += i; // gleichbedeutend mit sum = sum + i;
         }
         sum /= max;
-        ausgabe(sum);
+        //ausgabe(sum);
 
-        // Aufgabe: 
+        // Aufgabe:
         // Schreibe Funktion, die zwei Zahlen z1 und z2 nimmt und damit den
         // Mittelwert der Zahlenfolge z1 bis z2 bestimmt
         // Beispiel: z1 = 1 und z2 = 3: Mittelwert aus den Zahlen 1, 2, 3 -> 2
@@ -262,12 +276,111 @@ public:
         // ################
         //
         // Arrays
+        // Einführung: Sehr ungeschickt, wenn Zahlen nacheinander im Speicher abgelegt werden sollen:
+        int z1 = 1;
+        int z2 = 2;
+        int z3 = 3;
+        // Geschickter ist die Benutzung von Arrays in diesem Fall
+        // Initialisierung:
+        //   ____________________ Datentyp des Arrays, kann auch long, float, double, char... sein
+        //  |   _________________ Variablenname, beliebig wählbar
+        //  |  |  _______________ Größe des Arrays (wie viele Zahlen können abgespeichert werden)
+        //  |  | |      _________ Initialisierungsliste, also die Zahlen, die im Array abgespeichert werden sollen
+        //  |  | |     |
+        // int z[3] = {1, 2, 3}; // äquivalent zu oben mit den drei Integer z1, z2, z3
+        int z[3] = {1, 2, 3};
+
+        // Auf einzelne Zahlen im Array, kann mit dem Klammeroperator zugegriffen werden:
+        int temp1 = z[0]; // in temp1 steht 1
+        int temp2 = z[2]; // in temp2 steht 3
+        //int temp3 = z[3]; // Zugriff ist problematisch, da das Array nur 3 Felder groß ist, hier aber auf die vierte Zahl zugegriffen wird
+
+        // Anstatt einer Initialisierungsliste zu verwenden, kann jedes Feld des Arrays
+        // auch einzeln befüllt werden:
+        int x[100];
+        for (int i = 0; i < 100; ++i)
+            x[i] = i; // x wird mit den zahlen {0, 1, 2, 3, 4, ..., 99} befüllt
+
+        // Anwendungsfall: Länge von Vektoren
+        //    |\ 
+        //  y |  \  c
+        //    |    \ 
+        //    |______\ 
+        //        x
+        // c = sqrt(x^2 + y^2 + z^2)
+        // Sei c ein Vektor c = (4, 5, 1)
+        int c[3] = {4, 5, 1};
+        float length = sqrt(pow(c[0], 2) + pow(c[1], 2) + pow(c[2], 2));
+
+        // Anwendungsfall: Mittelwert aus beliebigen Zahlen
+        // So können Arrays (siehe Kapitel 0x06) übergeben werden
+        int zahlen[6] = {1, 3, 5, 200, 6, 45};
+        int mw2 = mittelwert(zahlen, 6);
+        // ausgabe(mw2);
+
+        // Strings und arrays
+        // Strings (Zeichenfolgen) sind nichts anderes als char-Arrays
+        char string1[11] = {'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd'};
+        // gleichbedeutend mit
+        String string2 = "Hello world";
+        Serial.print(string1);
 
         // ################
         // # Kapitel 0x07 #
         // ################
         //
-        // Bedingungen
+        // Bedingungen (if-Anweisungen, Verzweigungen)
+        // Bestimmte Code-Abschnitten sollen nur unter bestimmten Vorraussetzungen 
+        // ausgeführt werden:
+        for (int i = 0; i < 10; ++i) {
+            if (i > 2) {
+                ausgabe(i); // sobald i >= 3 (also i 2 übersteigt), werden die nächsten Zahlen von 3 bis 9 auf der Konsole ausgegeben
+            }
+            // Notiz: zwei if-Anweisungen nacheinander beeinflussen sich nicht gegenseitig.
+            if (i % 2 == 0) {
+                ausgabe(i); // nur alle geraden Zahlen werden ausgegeben: 0, 2, 4, ..., 8
+            }
+
+            // zwei verschachtelte if-Anweisungen
+            if (i < 6) {
+                if (i % 2 == 1) {
+                    ausgabe(i); // alle ungeraden Zahlen unter 6 werden ausgegeben.
+                }
+            }
+        }
+
+        // if-Anweisungen mit mehreren Ausgängen (Pfaden)
+        int bed = 1;
+        if (bed == 0) { // wenn das...
+            Serial.print("Erster Pfad"); // dann das...
+        } else { // wenn nicht:
+            Serial.print("Zweiter Pfad"); // dann das...
+        }
+
+        bed = 2;
+        if (bed == 0) { // wenn das...
+            Serial.print("Erster Pfad"); // dann das...
+        } else if (bed == 1) { // wenn das...
+            Serial.print("Zweiter Pfad"); // dann das...
+        } else if (bed == 2) {
+            Serial.print("Dritter Pfad");
+        } else {
+            Serial.print("Vierter Pfad");
+        }
+
+        // Verknüpfungen "und", "oder"
+        int bed1 = 0;
+        int bed2 = 5;
+        if (bed1 == 0 && bed2 < 6) // das nachfolgende wird nur ausgeführt, wenn sowohl Bedingung1 und Bedingung2 wahr sind
+            Serial.print("Bedingung1 und Bedingung2 wahr!");
+        if (bed1 != 0 || bed2 < 6) // 
+            Serial.print("Bedingung1 oder Bedingung2 wahr!");
+
+        // "Negation"
+        int bed3 = 3;
+        // bed3 > 5: falsch
+        if ( !(bed3 > 5) ) // falsch wird in wahr umgewandelt
+            Serial.print("Variable bed3 ist kleiner gleich 5");
 
         // nur für den Simulator notwendig: (warte 10 Mikrosekunden)
         usleep(10);
